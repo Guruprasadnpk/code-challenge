@@ -5,12 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -22,10 +18,10 @@ import org.json.simple.parser.ParseException;
  * 
  */
 public class EventReader {
-	void ingest(File input_file) {
-		JSONParser eventParser = new JSONParser();
+	void ingest(File input_file) throws java.text.ParseException {
+		JSONParser jsonParser = new JSONParser();
 		try {
-			JSONArray events = (JSONArray) eventParser.parse(new FileReader(input_file));
+			JSONArray events = (JSONArray) jsonParser.parse(new FileReader(input_file));
 			events.sort(new EventComparator());
 			EventParser eventParser = new EventParser();
 			eventParser.parseEvents(events);
@@ -39,7 +35,7 @@ public class EventReader {
 		}
 	}
 	
-	public static void main(String args[]) {
+	public static void main(String args[]) throws java.text.ParseException {
 		EventReader eventreader = new EventReader();
 		final String dir = System.getProperty("user.dir");
 		eventreader.ingest(new File(dir + "/sample_input/events.txt"));

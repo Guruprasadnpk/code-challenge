@@ -50,7 +50,7 @@ public class Customer {
 		this.updatedDateTime = updatedDateTime;
 	}
 
-	public String setLastName() {
+	public String getLastName() {
 		return this.last_name;
 	}
 
@@ -66,11 +66,11 @@ public class Customer {
 		return this.state;
 	}
 
-	public Date setCreatedDate() {
+	public Date getCreatedDate() {
 		return this.createdDateTime;
 	}
 
-	public Date setUpdatedDate() {
+	public Date getUpdatedDate() {
 		return this.updatedDateTime;
 	}
 
