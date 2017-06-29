@@ -4,26 +4,24 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * @author gkuppuswamy
- * The Customer class represents a customer of Shutterfly.
- * A customer will be created if an event type is Customer and the 
- * action of the event is NEW. The object will be updated if the
- * action is UPDATE. 
+ * @author gkuppuswamy The Customer class represents a customer of Shutterfly. A
+ *         customer will be created if an event type is Customer and the action
+ *         of the event is NEW. The object will be updated if the action is
+ *         UPDATE.
  * 
  */
 public class Customer {
-	private int id;
+	private String id;
 	private String last_name;
 	private String city;
 	private String state;
 	private Date createdDateTime;
 	private Date updatedDateTime;
-	// Need to create 3 more classes ***
-	//private ArrayList<Order> orders;
-	//private ArrayList<SiteVisit> site_visits;
-	//private ArrayList<Image> images;
+	private ArrayList<Order> orders;
+	private ArrayList<SiteVisit> site_visits;
+	private ArrayList<Image> images;
 
-	public Customer(String type, int id, String last_name, String city, String state, Date date) {
+	public Customer(String id, String last_name, String city, String state, Date date) {
 		this.id = id;
 		this.last_name = last_name;
 		this.city = city;
@@ -56,6 +54,10 @@ public class Customer {
 		return this.last_name;
 	}
 
+	public String getId() {
+		return this.id;
+	}
+
 	public String getCity() {
 		return this.city;
 	}
@@ -70,6 +72,18 @@ public class Customer {
 
 	public Date setUpdatedDate() {
 		return this.updatedDateTime;
+	}
+
+	public ArrayList<Order> getOrders() {
+		return this.orders;
+	}
+
+	public ArrayList<SiteVisit> getSiteVisits() {
+		return this.site_visits;
+	}
+
+	public ArrayList<Image> getImages() {
+		return this.images;
 	}
 
 }

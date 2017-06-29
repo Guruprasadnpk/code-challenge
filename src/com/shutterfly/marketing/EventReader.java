@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import org.json.simple.JSONArray;
@@ -24,12 +26,10 @@ public class EventReader {
 		JSONParser eventParser = new JSONParser();
 		try {
 			JSONArray events = (JSONArray) eventParser.parse(new FileReader(input_file));
-			Iterator<?> jsonIterator = events.iterator();
-			while (jsonIterator.hasNext()) {
-				JSONObject event = (JSONObject) jsonIterator.next();
-				String type = (String) event.get("type");
-			}
-
+			events.sort(new EventComparator());
+			EventParser eventParser = new EventParser();
+			eventParser.parseEvents(events);
+				
 		} catch (ParseException parse_Ex) {
 			parse_Ex.printStackTrace();
 		} catch (FileNotFoundException fileNotFound_Ex) {
