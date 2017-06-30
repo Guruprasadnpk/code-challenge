@@ -40,19 +40,4 @@ public class TimeFrame {
 		return weekRanges;
 	}
 	
-/*
-	public static void main(String args[]) {
-		TimeFrame timeframe = new TimeFrame();
-		Calendar first = Calendar.getInstance();
-		Calendar last = (Calendar) first.clone();
-
-		Calendar test = (Calendar) first.clone();
-		last.add(Calendar.DAY_OF_YEAR, 366);
-		System.out.println(last.getTime());
-		NavigableMap<Date, Integer> ranges = timeframe.generateWeeks(first.getTime(), last.getTime());
-		test.add(Calendar.DAY_OF_YEAR, 365);
-		System.out.println("########################");
-		System.out.println(test.getTime());
-		System.out.println(ranges.floorKey(test.getTime()));
-	}*/
 }

@@ -49,9 +49,6 @@ public class EventParser {
 				}
 			}
 		}
-
-		System.out.println(timeframe_start);
-		System.out.println(timeframe_end);
 	}
 
 	/*

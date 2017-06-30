@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class WeeklyTransaction {
 	private String customer_id;
-	private Double expenditure=0;
+	private Double expenditure=0.0;
 	private int no_of_visits=0;
 	int week;
 	private Date week_start;
@@ -75,4 +75,11 @@ public class WeeklyTransaction {
 		return this.expenditure;
 	}
 
+	
+	public Double getExpenditurePerVisit() {
+		if (this.no_of_visits==0)
+			return this.expenditure;
+		else
+			return (this.expenditure/Double.valueOf(no_of_visits));
+	}
 }
