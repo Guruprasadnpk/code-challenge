@@ -66,8 +66,8 @@ public class SiteVisit {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof SiteVisit) {
-        	SiteVisit pp = (SiteVisit) obj;
-            return (pp.id.equals(this.id) && pp.customer_id.equals(this.customer_id));
+        	SiteVisit sitevisit = (SiteVisit) obj;
+            return (sitevisit.id.equals(this.id) && sitevisit.customer_id.equals(this.customer_id));
         } else {
             return false;
         }

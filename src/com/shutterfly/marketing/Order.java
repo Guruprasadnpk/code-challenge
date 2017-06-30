@@ -3,11 +3,10 @@ package com.shutterfly.marketing;
 import java.util.Date;
 
 /**
- * @author gkuppuswamy
- * The Customer class represents a customer of Shutterfly.
- * A customer will be created if an event type is Customer and the 
- * action of the event is NEW. The object will be updated if the
- * action is UPDATE. 
+ * @author gkuppuswamy The Customer class represents a customer of Shutterfly. A
+ *         customer will be created if an event type is Customer and the action
+ *         of the event is NEW. The object will be updated if the action is
+ *         UPDATE.
  * 
  */
 public class Order {
@@ -55,11 +54,11 @@ public class Order {
 	public Double getTotalAmount() {
 		return this.total_amount;
 	}
-	
+
 	public String getCurrency() {
 		return this.currency;
 	}
-	
+
 	public Date getCreatedDate() {
 		return this.createdDateTime;
 	}
@@ -67,5 +66,20 @@ public class Order {
 	public Date getUpdatedDate() {
 		return this.updatedDateTime;
 	}
-}
 
+	@Override
+	public int hashCode() {
+		return (id + customer_id).hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof Order) {
+			Order order = (Order) obj;
+			return (order.id.equals(this.id) && order.customer_id.equals(this.customer_id));
+		} else {
+			return false;
+		}
+	}
+
+}

@@ -17,7 +17,8 @@ import org.json.simple.JSONObject;
  *         Customer, Image, Site Visit or Order
  */
 public class EventParser {
-
+	private static Date timeframe_start = null;
+	private static Date timeframe_end = null;
 	private static HashMap<String, Customer> customers = new HashMap<String, Customer>();
 	private static HashMap<String, HashSet<SiteVisit>> site_visits = new HashMap<String, HashSet<SiteVisit>>();
 	private static HashMap<String, HashSet<Order>> orders = new HashMap<String, HashSet<Order>>();
@@ -39,16 +40,23 @@ public class EventParser {
 				case "SITE_VISIT":
 					parseSiteVisit(event);
 					break;
-				/*
-				 * case "IMAGE": parseImage(event); break; case "ORDER":
-				 * parseOrder(event); break;
-				 */
+				case "IMAGE":
+					parseImage(event);
+					break;
+				case "ORDER":
+					parseOrder(event);
+					break;
 				}
 			}
 		}
-		System.out.println(site_visits.size());
+
+		System.out.println(timeframe_start);
+		System.out.println(timeframe_end);
 	}
 
+	/*
+	 * These methods can be generalized Need to create an interface
+	 */
 	// Method to parse customer event
 	private void parseCustomer(JSONObject customerEvent) throws ParseException {
 		Customer customer = null;
@@ -61,7 +69,7 @@ public class EventParser {
 		Date date = dateFormat.parse((String) customerEvent.get("event_time"));
 		if ("NEW".equalsIgnoreCase(verb) && customer_id != null && !customers.containsKey("customer_id")) {
 			customer = new Customer(customer_id, last_name, city, state, date);
-		} else if ("UPLOAD".equalsIgnoreCase(verb) && customer_id != null && customers.containsKey("customer_id")) {
+		} else if ("UPDATE".equalsIgnoreCase(verb) && customer_id != null && customers.containsKey("customer_id")) {
 			customer = customers.get("customer_id");
 			customer.setCity(city);
 			customer.setLastName(last_name);
@@ -71,7 +79,8 @@ public class EventParser {
 		if (customer_id != null)
 			customers.put(customer_id, customer);
 	}
-// Method to parse site visit
+
+	// Method to parse site visit
 	private void parseSiteVisit(JSONObject siteVisitEvent) throws ParseException {
 		SiteVisit site_visit = null;
 		String verb = (String) siteVisitEvent.get("verb");
@@ -91,7 +100,8 @@ public class EventParser {
 		}
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss'Z'");
 		Date date = dateFormat.parse((String) siteVisitEvent.get("event_time"));
-		if ("NEW".equalsIgnoreCase(verb) && site_visit_id != null && !site_visits.containsKey("site_visit_id")) {
+		check_and_setTimeFrame(date);
+		if ("NEW".equalsIgnoreCase(verb) && site_visit_id != null) {
 			site_visit = new SiteVisit(site_visit_id, customer_id, tags, date);
 		}
 		if (customer_id != null && site_visits.containsKey(customer_id)) {
@@ -109,22 +119,31 @@ public class EventParser {
 		String verb = (String) orderEvent.get("verb");
 		String order_id = (String) orderEvent.get("key");
 		String customer_id = (String) orderEvent.get("customer_id");
-		String total_amount_str = (String)orderEvent.get("total_amount");
-		HashMap<String, String> tags = new HashMap<String, String>();
-		Iterator<?> it = tagsJson.iterator();
-		while (it.hasNext()) {
-			JSONObject jsonObject = (JSONObject) it.next();
-			Iterator pair = jsonObject.entrySet().iterator();
-			Entry entry = null;
-			while (pair.hasNext()) {
-				entry = (Entry) pair.next();
-				tags.put((String) entry.getKey(), (String) entry.getValue());
-			}
+		Double total_amount = 0.0;
+		String currency = null;
+		String total_amount_str = (String) orderEvent.get("total_amount");
+		if (total_amount_str != null) {
+			total_amount_str = total_amount_str.replaceAll("[^\\d.]", "");
+			currency = total_amount_str.replaceAll("[^a-zA-Z]", "");
 		}
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss'Z'");
 		Date date = dateFormat.parse((String) orderEvent.get("event_time"));
-		if ("NEW".equalsIgnoreCase(verb) && order_id != null && !orders.containsKey("order_id")) {
+		check_and_setTimeFrame(date);
+		if ("NEW".equalsIgnoreCase(verb) && order_id != null) {
 			order = new Order(order_id, customer_id, total_amount, currency, date);
+		} else if ("UPDATE".equalsIgnoreCase(verb) && order_id != null) {
+			Order updated_order = new Order(order_id, customer_id, total_amount, currency, date);
+			Iterator<Order> orderIterator = orders.get(customer_id).iterator();
+			Order old_ord = null;
+			while (orderIterator.hasNext()) {
+				old_ord = orderIterator.next();
+				if (old_ord.equals(updated_order)) {
+					updated_order.setCreatedDate(old_ord.getCreatedDate());
+					break;
+				}
+			}
+			if (old_ord != null)
+				orders.get(customer_id).remove(old_ord);
 		}
 		if (customer_id != null && orders.containsKey(customer_id)) {
 			orders.get(customer_id).add(order);
@@ -134,6 +153,63 @@ public class EventParser {
 			orders.put(customer_id, customer_orders);
 		}
 	}
-	
 
+	// Method to parse image
+	private void parseImage(JSONObject imageEvent) throws ParseException {
+		Image image = null;
+		String verb = (String) imageEvent.get("verb");
+		String image_id = (String) imageEvent.get("key");
+		String customer_id = (String) imageEvent.get("customer_id");
+		String camera_make = (String) imageEvent.get("camera_make");
+		String camera_model = (String) imageEvent.get("camera_model");
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss'Z'");
+		Date date = dateFormat.parse((String) imageEvent.get("event_time"));
+
+		if ("UPLOAD".equalsIgnoreCase(verb) && image_id != null) {
+			image = new Image(image_id, customer_id, camera_make, camera_model, date);
+		}
+		if (customer_id != null && orders.containsKey(customer_id)) {
+			images.get(customer_id).add(image);
+		} else {
+			HashSet<Image> customer_images = new HashSet<Image>();
+			customer_images.add(image);
+			images.put(customer_id, customer_images);
+		}
+	}
+
+	void check_and_setTimeFrame(Date date) {
+		if (timeframe_start == null)
+			timeframe_start = date;
+		else if (timeframe_start.after(date))
+			timeframe_start = date;
+
+		if (timeframe_end == null)
+			timeframe_end = date;
+		else if (timeframe_end.before(date))
+			timeframe_end = date;
+	}
+
+	public Date getStartDateTime() {
+		return timeframe_start;
+	}
+
+	public Date getEndDateTime() {
+		return timeframe_end;
+	}
+
+	public HashMap<String, Customer> getCustomers() {
+		return customers;
+	}
+
+	public HashMap<String, HashSet<SiteVisit>> getSiteVisits() {
+		return site_visits;
+	}
+
+	public HashMap<String, HashSet<Order>> getOrders() {
+		return orders;
+	}
+
+	public HashMap<String, HashSet<Image>> getImages() {
+		return images;
+	}
 }

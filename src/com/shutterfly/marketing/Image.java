@@ -67,5 +67,20 @@ public class Image {
 	public Date getUpdatedDate() {
 		return this.updatedDateTime;
 	}
+	
+    @Override
+    public int hashCode() {
+    	return (id+customer_id).hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Image) {
+        	Image image = (Image) obj;
+            return (image.id.equals(this.id) && image.customer_id.equals(this.customer_id));
+        } else {
+            return false;
+        }
+    }
 
 }

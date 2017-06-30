@@ -1,7 +1,7 @@
 package com.shutterfly.marketing;
 
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 
 /**
  * @author gkuppuswamy The Customer class represents a customer of Shutterfly. A
@@ -17,9 +17,9 @@ public class Customer {
 	private String state;
 	private Date createdDateTime;
 	private Date updatedDateTime;
-	private ArrayList<Order> orders;
-	private ArrayList<SiteVisit> site_visits;
-	private ArrayList<Image> images;
+	private HashSet<Order> orders;
+	private HashSet<SiteVisit> site_visits;
+	private HashSet<Image> images;
 
 	public Customer(String id, String last_name, String city, String state, Date date) {
 		this.id = id;
@@ -50,6 +50,18 @@ public class Customer {
 		this.updatedDateTime = updatedDateTime;
 	}
 
+	public void setOrders(HashSet<Order> orders) {
+		this.orders = orders;
+	}
+
+	public void setSiteVisits(HashSet<SiteVisit> site_visits) {
+		this.site_visits = site_visits;
+	}
+
+	public void setImages(HashSet<Image> images) {
+		this.images = images;
+	}
+
 	public String getLastName() {
 		return this.last_name;
 	}
@@ -74,15 +86,15 @@ public class Customer {
 		return this.updatedDateTime;
 	}
 
-	public ArrayList<Order> getOrders() {
+	public HashSet<Order> getOrders() {
 		return this.orders;
 	}
 
-	public ArrayList<SiteVisit> getSiteVisits() {
+	public HashSet<SiteVisit> getSiteVisits() {
 		return this.site_visits;
 	}
 
-	public ArrayList<Image> getImages() {
+	public HashSet<Image> getImages() {
 		return this.images;
 	}
 
