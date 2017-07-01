@@ -14,7 +14,7 @@ public class CustomerLifeTimeValue {
 		try {
 		CustomerLifetimeValueHelper cltv = new CustomerLifetimeValueHelper();
 		// events are provided in input file which are ingested into data
-		Object data = cltv.ingest("/input/input_3_customers.txt");
+		Object data = cltv.ingest("/input/input_4_missing_sites.txt");
 		final String dir = System.getProperty("user.dir");
 		String out_dir = dir + "/output/";
 		// Call TopXSimpleLTVCustomers to get top N customers with highest LTV
