@@ -1,60 +1,98 @@
 package com.shutterfly.marketing;
 
-import java.util.Comparator;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
-public class LifeTimeValue implements Comparator<LifeTimeValue>{
+/**
+ * @author gkuppuswamy LifeTimeValue consolidates the customer, his/her no of
+ *         visits per week, expenditures per visit, total expenditure, lifespan,
+ *         lifetime value of the customer
+ */
+public class LifeTimeValue {
 	private Customer customer;
-	private int no_of_visits_per_week;
-	private Double expenditures_per_visit;
-	private Double avg_cust_value_per_week;
+	private BigDecimal total_no_of_visits_per_week;
+	private BigDecimal total_expenditures_per_visit;
+	private BigDecimal total_expenditure;
 	private int lifespan;
-	private Double lifetimevalue;
+	private BigDecimal lifetimevalue;
+	private int no_of_weeks;
 
-	public LifeTimeValue(Customer customer, int no_of_visits_per_week, int lifespan, 
-			Double expenditures_per_visit) {
+	/*
+	 * creates a LifeTimeValue
+	 * 
+	 */
+	public LifeTimeValue(Customer customer, BigDecimal no_of_visits_per_week,
+			int lifespan, BigDecimal expenditures_per_visit,
+			BigDecimal total_exp, int no_of_weeks) {
 		this.customer = customer;
-		this.no_of_visits_per_week = no_of_visits_per_week;
+		this.total_no_of_visits_per_week = no_of_visits_per_week;
 		this.lifespan = lifespan;
-		this.expenditures_per_visit = expenditures_per_visit;
-		this.lifetimevalue = 52 * (no_of_visits_per_week * expenditures_per_visit) * lifespan;
+		this.total_expenditures_per_visit = expenditures_per_visit;
+		this.no_of_weeks = no_of_weeks;
+		this.total_expenditure = total_exp;
+		calculateLTV();
 	}
 
-	public void setNoOfVisits(int no_of_visits_per_week) {
-		this.no_of_visits_per_week = no_of_visits_per_week;
+	/*
+	 * calculates the lifetime values LifeTime Value = 52 * (customer
+	 * expenditures per visit (USD) * number of site visits per week) * lifespan
+	 */
+	void calculateLTV() {
+		this.lifetimevalue = (total_no_of_visits_per_week
+				.divide(new BigDecimal(this.no_of_weeks), 5,
+						RoundingMode.HALF_UP)
+				.multiply(total_expenditures_per_visit)
+				.divide(new BigDecimal(this.no_of_weeks), 5,
+						RoundingMode.HALF_UP)
+				.multiply(new BigDecimal(this.no_of_weeks))
+				.multiply(new BigDecimal(52 * lifespan)));
 	}
 
-	public void setTotalWeeklyExp(Double expenditures_per_visit) {
-		this.expenditures_per_visit = expenditures_per_visit;
+	/* sets number of visits and calculates LifeTime Value */
+	public void setNoOfVisits(BigDecimal no_of_visits_per_week) {
+		this.total_no_of_visits_per_week = no_of_visits_per_week;
+		calculateLTV();
 	}
 
+	/* sets weekly expenditure and calculates LifeTime Value */
+	public void setTotalWeeklyExp(BigDecimal expenditures_per_visit) {
+		this.total_expenditures_per_visit = expenditures_per_visit;
+		calculateLTV();
+	}
+
+	// sets lifespan
 	public void setLifeSpan(int lifespan) {
 		this.lifespan = lifespan;
+		calculateLTV();
 	}
 
-	public int getNoOfVisits() {
-		return this.no_of_visits_per_week;
+	// returns number of visits
+	public BigDecimal getNoOfVisits() {
+		return this.total_no_of_visits_per_week;
 	}
-	
-	public Double getExpPerVisit() {
-		return this.expenditures_per_visit;
+
+	// returns number of expenditure per visit
+	public BigDecimal getExpPerVisit() {
+		return this.total_expenditures_per_visit;
 	}
-	
-	public Double getAvgCustVal() {
-		return this.avg_cust_value_per_week;
-	}
-	
-	public Double getLTV() {
+
+	// returns lifetime value
+	public BigDecimal getLTV() {
 		return this.lifetimevalue;
 	}
-	
+
+	// returns lifespan
 	public int getLifeSpan() {
 		return this.lifespan;
 	}
-	
-	@Override
-	public int compare(LifeTimeValue o1, LifeTimeValue o2) {
-		Double ltv1 = o1.getLTV();
-		Double ltv2 = o2.getLTV();
-		return ltv1.compareTo(ltv2);
+
+	// returns total expenditure
+	public BigDecimal getTotalExpenditure() {
+		return this.total_expenditure;
+	}
+
+	// returns customer
+	public Customer getCustomer() {
+		return this.customer;
 	}
 }

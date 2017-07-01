@@ -2,6 +2,8 @@ package com.shutterfly.marketing;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
@@ -10,12 +12,17 @@ import java.util.TreeMap;
  * with a key. This will be used to groups Orders & Site_Visits of a customer
  */
 public class TimeFrame {
+	/*
+	 * generateWeeks takes the start date and end date and returns a navigable
+	 * hashmap with the lower bound of every week (SUNDAY) between start
+	 * and end dates with a unique key
+	 */
 	NavigableMap<Date, Integer> generateWeeks(Date startDate, Date endDate) {
 		if (startDate.after(endDate))
 			return null;
 		NavigableMap<Date, Integer> weekRanges = new TreeMap<Date, Integer>();
 		int week_no = 1;
-		weekRanges.put(startDate, week_no);
+		
 		Calendar timeFrameCal = Calendar.getInstance();
 		timeFrameCal.setFirstDayOfWeek(Calendar.SUNDAY);
 		timeFrameCal.setTime(startDate);
@@ -25,7 +32,8 @@ public class TimeFrame {
 		timeFrameCal.set(Calendar.MILLISECOND, 0);
 
 		Calendar first = (Calendar) timeFrameCal.clone();
-		first.add(Calendar.DAY_OF_WEEK, first.getFirstDayOfWeek() - first.get(Calendar.DAY_OF_WEEK));
+		first.add(Calendar.DAY_OF_WEEK, first.getFirstDayOfWeek());
+		weekRanges.put(first.getTime(), week_no);
 		Calendar last = (Calendar) first.clone();
 		Date last_date = last.getTime();
 		while (last_date.before(endDate)) {
@@ -34,10 +42,7 @@ public class TimeFrame {
 			last_date = last.getTime();
 			weekRanges.put(last_date, week_no);
 		}
-		if (last_date.before(endDate))
-			weekRanges.put(endDate, week_no);
 
 		return weekRanges;
 	}
-	
 }

@@ -25,25 +25,63 @@ import org.json.simple.parser.ParseException;
  * 
  */
 public class EventReader {
+	// start date of time frame
 	static Date timeframe_start = null;
+	// stop date of time frame
 	static Date timeframe_end = null;
 	static HashMap<String, HashMap<Integer, WeeklyTransaction>> customerTransactions = new HashMap<String, HashMap<Integer, WeeklyTransaction>>();
 	static NavigableMap<Date, Integer> ranges = null;
-    static int no_of_weeks = 0;
-    static HashMap<String, Customer> customers = null;
-	HashMap<String, Customer> readEvents(File input_file) throws java.text.ParseException {
+	static int no_of_weeks = 0;
+	static HashMap<String, Customer> customers = null;
+
+	/*
+	 * ingest_file reads a file, parses the data from JSON to data structures
+	 * and summarizes the data based on each week for the time frame of data
+	 */
+	void ingest_file(String file) throws java.text.ParseException {
+		EventReader eventreader = new EventReader();
+		final String dir = System.getProperty("user.dir");
+		HashMap<String, Customer> data = eventreader
+				.readEvents(new File(dir + file));
+		Iterator dataIterator = data.entrySet().iterator();
+		while (dataIterator.hasNext()) {
+			Map.Entry pair = (Map.Entry) dataIterator.next();
+			String customer_id = (String) pair.getKey();
+			HashSet<SiteVisit> sitevisits = ((Customer) pair.getValue())
+					.getSiteVisits();
+			eventreader.summarizeWeeklyCustomerSiteVisits(customer_id,
+					sitevisits);
+			HashSet<Order> orders = ((Customer) pair.getValue()).getOrders();
+			eventreader.summarizeWeeklyCustomerOrders(customer_id, orders);
+		}
+	}
+
+	/*
+	 * readEvents ingests the input file, convert the JSON contents to
+	 * JSONObject and parse it to relevant objects and stores them. It returns
+	 * the dataset to customer details with orders, sitevisits and images.
+	 */
+	HashMap<String, Customer> readEvents(File input_file)
+			throws java.text.ParseException {
 		JSONParser jsonParser = new JSONParser();
 		try {
-			JSONArray events = (JSONArray) jsonParser.parse(new FileReader(input_file));
+			JSONArray events = (JSONArray) jsonParser
+					.parse(new FileReader(input_file));
+			// sorts the events by type and time. this ensures that the data is
+			// chronological
 			events.sort(new EventComparator());
 			EventParser eventParser = new EventParser();
 			eventParser.parseEvents(events);
 			timeframe_start = eventParser.getStartDateTime();
 			timeframe_end = eventParser.getEndDateTime();
-
+			// parse customers
 			customers = eventParser.getCustomers();
-			HashMap<String, HashSet<SiteVisit>> sitevisits = eventParser.getSiteVisits();
+			// parse site visits
+			HashMap<String, HashSet<SiteVisit>> sitevisits = eventParser
+					.getSiteVisits();
+			// parse orders
 			HashMap<String, HashSet<Order>> orders = eventParser.getOrders();
+			// parse images
 			HashMap<String, HashSet<Image>> images = eventParser.getImages();
 			TimeFrame timeframe = new TimeFrame();
 			ranges = timeframe.generateWeeks(timeframe_start, timeframe_end);
@@ -54,7 +92,6 @@ public class EventReader {
 				Map.Entry pair = (Map.Entry) it.next();
 				Customer customer_obj = (Customer) pair.getValue();
 				String customer_id = (String) pair.getKey();
-
 				customer_obj.setSiteVisits(sitevisits.get(customer_id));
 				customer_obj.setOrders(orders.get(customer_id));
 				customer_obj.setImages(images.get(customer_id));
@@ -70,45 +107,38 @@ public class EventReader {
 		return null;
 	}
 
-    void ingest(String file) throws java.text.ParseException {
-		EventReader eventreader = new EventReader();
-		final String dir = System.getProperty("user.dir");
-		HashMap<String, Customer> data = eventreader.readEvents(new File(dir + file));
-		Iterator dataIterator = data.entrySet().iterator();
-		while (dataIterator.hasNext()) {
-			Map.Entry pair = (Map.Entry) dataIterator.next();
-			String customer_id = (String) pair.getKey();
-			HashSet<SiteVisit> sitevisits = ((Customer) pair.getValue()).getSiteVisits();
-			eventreader.summarizeWeeklyCustomerSiteVisits(customer_id, sitevisits);
-			HashSet<Order> orders = ((Customer) pair.getValue()).getOrders();
-		}
-	}
-
 	/*
 	 * Summarizes the visits and expenditure by week per customer
 	 */
-	 void summarizeWeeklyCustomerSiteVisits(String customer_id, HashSet<SiteVisit> site_visits) {
+	void summarizeWeeklyCustomerSiteVisits(String customer_id,
+			HashSet<SiteVisit> site_visits) {
 		Iterator sitevisitIterator = site_visits.iterator();
 		while (sitevisitIterator.hasNext()) {
 			SiteVisit sitevisit = (SiteVisit) sitevisitIterator.next();
-			int week = ranges.floorEntry(sitevisit.getUpdatedDate()).getValue();
-			Date week_start = ranges.floorEntry(sitevisit.getUpdatedDate()).getKey();
+			// gets the week key from the NavigableMap of TimeFrame
+			int week = ranges.ceilingEntry(sitevisit.getUpdatedDate())
+					.getValue();
+			// Gets the first day of week (SUNDAY)
+			Date week_start = ranges.ceilingEntry(sitevisit.getUpdatedDate())
+					.getKey();
 			Calendar cal = Calendar.getInstance();
 			cal.setTime(week_start);
 			cal.add(Calendar.DAY_OF_YEAR, 6);
+			// setting the week end date
 			Date week_end = cal.getTime();
 			if (customerTransactions.containsKey(customer_id)) {
 				if (customerTransactions.get(customer_id).containsKey(week))
 					customerTransactions.get(customer_id).get(week).addVisit(); // Test
 																				// this
 				else {
-					WeeklyTransaction weekly_transaction = new WeeklyTransaction(customer_id, week, week_start,
-							week_end, 1);
-					customerTransactions.get(customer_id).put(week, weekly_transaction);
+					WeeklyTransaction weekly_transaction = new WeeklyTransaction(
+							customer_id, week, week_start, week_end, 1);
+					customerTransactions.get(customer_id).put(week,
+							weekly_transaction);
 				}
 			} else {
-				WeeklyTransaction weekly_transaction = new WeeklyTransaction(customer_id, week, week_start, week_end,
-						1);
+				WeeklyTransaction weekly_transaction = new WeeklyTransaction(
+						customer_id, week, week_start, week_end, 1);
 				HashMap<Integer, WeeklyTransaction> weeklytransactions = new HashMap<Integer, WeeklyTransaction>();
 				weeklytransactions.put(week, weekly_transaction);
 				customerTransactions.put(customer_id, weeklytransactions);
@@ -121,27 +151,35 @@ public class EventReader {
 	 * Summarizes the visits and expenditure by week per customer
 	 */
 
-	 void summarizeWeeklyOrders(String customer_id, HashSet<Order> orders) {
+	void summarizeWeeklyCustomerOrders(String customer_id,
+			HashSet<Order> orders) {
 		Iterator orderIterator = orders.iterator();
 		while (orderIterator.hasNext()) {
 			Order order = (Order) orderIterator.next();
-			int week = ranges.floorEntry(order.getUpdatedDate()).getValue();
-			Date week_start = ranges.floorEntry(order.getUpdatedDate()).getKey();
+			int week = ranges.ceilingEntry(order.getUpdatedDate()).getValue();
+			// Gets the first day of week (SUNDAY)
+			Date week_start = ranges.ceilingEntry(order.getUpdatedDate())
+					.getKey();
 			Calendar cal = Calendar.getInstance();
 			cal.setTime(week_start);
 			cal.add(Calendar.DAY_OF_YEAR, 6);
+			// setting the week end date
 			Date week_end = cal.getTime();
 			if (customerTransactions.containsKey(customer_id)) {
 				if (customerTransactions.get(customer_id).containsKey(week))
-					customerTransactions.get(customer_id).get(week).addExpenditure(order.getTotalAmount()); // Test
+					customerTransactions.get(customer_id).get(week)
+							.addExpenditure(order.getTotalAmount()); // Test
 				// this
 				else {
-					WeeklyTransaction weekly_transaction = new WeeklyTransaction(customer_id, week, week_start,
-							week_end, order.getTotalAmount());
-					customerTransactions.get(customer_id).put(week, weekly_transaction);
+					WeeklyTransaction weekly_transaction = new WeeklyTransaction(
+							customer_id, week, week_start, week_end,
+							order.getTotalAmount());
+					customerTransactions.get(customer_id).put(week,
+							weekly_transaction);
 				}
 			} else {
-				WeeklyTransaction weekly_transaction = new WeeklyTransaction(customer_id, week, week_start, week_end,
+				WeeklyTransaction weekly_transaction = new WeeklyTransaction(
+						customer_id, week, week_start, week_end,
 						order.getTotalAmount());
 				HashMap<Integer, WeeklyTransaction> weeklytransactions = new HashMap<Integer, WeeklyTransaction>();
 				weeklytransactions.put(week, weekly_transaction);
@@ -149,16 +187,19 @@ public class EventReader {
 			}
 		}
 	}
-	
+
+	// returns the weekly transactions - which is D used to calculate
+	// top n highest lifetime value customers
 	public HashMap<String, HashMap<Integer, WeeklyTransaction>> getCustomersTransactions() {
 		return this.customerTransactions;
 	}
-	
-	
+
+	// returns number of weeks
 	public int getNoOfWeeks() {
 		return this.no_of_weeks;
 	}
-	
+
+	// returns customers
 	public HashMap<String, Customer> getCustomers() {
 		return customers;
 	}

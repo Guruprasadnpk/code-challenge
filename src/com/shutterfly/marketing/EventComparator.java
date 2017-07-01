@@ -7,12 +7,11 @@ import java.util.Date;
 import org.json.simple.JSONObject;
 
 /**
- * @author gkuppuswamy The EventTmeComparator Class implements Comparator
- *         interface to compare two JSONObjects by event time. The compare
- *         method has been overridden to compare the elements by datetime.
+ * @author gkuppuswamy The EventComparator Class implements Comparator
+ *         interface to compare two JSONObjects by event time and types.
  * 
  *         This comparator is used to sort the Events stored in JSONArray by
- *         event_time.
+ *         their type and event_time.
  */
 public class EventComparator implements Comparator<JSONObject>{
 
