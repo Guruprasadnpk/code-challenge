@@ -49,10 +49,13 @@ public class EventReader {
 			String customer_id = (String) pair.getKey();
 			HashSet<SiteVisit> sitevisits = ((Customer) pair.getValue())
 					.getSiteVisits();
-			eventreader.summarizeWeeklyCustomerSiteVisits(customer_id,
+			if (sitevisits!=null)
+				eventreader.summarizeWeeklyCustomerSiteVisits(customer_id,
 					sitevisits);
+			
 			HashSet<Order> orders = ((Customer) pair.getValue()).getOrders();
-			eventreader.summarizeWeeklyCustomerOrders(customer_id, orders);
+			if (orders!=null)
+				eventreader.summarizeWeeklyCustomerOrders(customer_id, orders);
 		}
 	}
 
